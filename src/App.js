@@ -1,23 +1,72 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import { Routes, Route, Link } from "react-router-dom";
+
+import Dashboard from "./components/Dashboard";
+import AddTransaction from "./components/AddTransaction";
+import TransactionList from "./components/TransactionList";
+import Reports from "./components/Reports";
+import About from "./components/About";
+
+import {
+  getTransactions,
+  addTransaction as addTxAPI,
+  deleteTransaction as deleteTxAPI
+} from "./api/api";
 
 function App() {
+  const [transactions, setTransactions] = useState([]);
+
+  // FETCH FROM BACKEND
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const fetchTransactions = async () => {
+    const res = await getTransactions();
+    setTransactions(res.data);
+  };
+
+  const addTransaction = async (transaction) => {
+    await addTxAPI(transaction);
+    fetchTransactions();
+  };
+
+  const deleteTransaction = async (id) => {
+    await deleteTxAPI(id);
+    fetchTransactions();
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <nav className="navbar">
+        <Link to="/">Home</Link>
+        <Link to="/add">Add</Link>
+        <Link to="/list">Transactions</Link>
+        <Link to="/reports">Reports</Link>
+        <Link to="/about">About</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Dashboard transactions={transactions} />} />
+        <Route
+          path="/add"
+          element={<AddTransaction addTransaction={addTransaction} />}
+        />
+        <Route
+          path="/list"
+          element={
+            <TransactionList
+              transactions={transactions}
+              deleteTransaction={deleteTransaction}
+            />
+          }
+        />
+        <Route
+          path="/reports"
+          element={<Reports transactions={transactions} />}
+        />
+        <Route path="/about" element={<About />} />
+      </Routes>
     </div>
   );
 }
